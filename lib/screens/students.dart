@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'global.dart';
+import '../services/global.dart';
+import '../widgets/input_text.dart';
 
 class StudentsPage extends StatefulWidget {
   const StudentsPage({super.key});
@@ -49,32 +50,40 @@ class _StudentsPageState extends State<StudentsPage> {
           key: formGlobalKey,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            SizedBox(
-              width: 250,
-              child: TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Name is required";
-                  }
-                },
-                controller: studentName,
-                decoration: const InputDecoration(labelText: "Name"),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 0.5)),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InputText(
+                      caption: 'Name',
+                      controller: studentName,
+                      width: 250,
+                    ),
+                    InputText(
+                      caption: 'Address',
+                      controller: studentAddress,
+                      width: 300,
+                    ),
+                    InputText(
+                      caption: 'Age',
+                      controller: studentAge,
+                      width: 50,
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(
-              width: 300,
-              child: TextFormField(
-                keyboardType: TextInputType.number,
-                controller: studentAddress,
-                decoration: const InputDecoration(labelText: "Address"),
-              ),
+            const SizedBox(
+              height: 5,
             ),
-            SizedBox(
-              width: 50,
-              child: TextFormField(
-                controller: studentAge,
-                decoration: const InputDecoration(labelText: "Age"),
-              ),
+            const Text(
+              "List of Students",
+              style: TextStyle(fontSize: 20),
             ),
             FutureBuilder(
               future: getList(),
