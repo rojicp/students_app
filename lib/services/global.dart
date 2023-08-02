@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+bool showCounterExample = false;
+
 showMessage(context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(backgroundColor: Colors.blueAccent, content: Text(message)));
