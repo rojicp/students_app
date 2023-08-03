@@ -23,6 +23,13 @@ class _StudentsPageState extends State<StudentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    double logoWidth = 150;
+    double logoHeight = 150;
+    if (MediaQuery.of(context).size.width < 800) {
+      logoWidth = 75;
+      logoHeight = 75;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -44,95 +51,109 @@ class _StudentsPageState extends State<StudentsPage> {
           ],
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: formGlobalKey,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey, width: 0.5)),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InputText(
-                      caption: 'Name',
-                      controller: studentName,
-                      width: 250,
-                    ),
-                    InputText(
-                      caption: 'Address',
-                      controller: studentAddress,
-                      width: 300,
-                    ),
-                    InputText(
-                      caption: 'Age',
-                      controller: studentAge,
-                      width: 50,
-                    ),
-                  ],
+      body: Container(
+        decoration:
+            BoxDecoration(color: const Color.fromARGB(255, 132, 159, 171)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: formGlobalKey,
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: logoWidth,
+                  height: logoHeight,
+                  child: const CircleAvatar(
+                    backgroundImage: AssetImage('assets/images/student.jpeg'),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            const Text(
-              "List of Students",
-              style: TextStyle(fontSize: 20),
-            ),
-            FutureBuilder(
-              future: getList(),
-              builder: (context, snapshot) {
-                return Expanded(
-                  child: ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: studentList.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        decoration: const BoxDecoration(
-                            color: Color.fromARGB(255, 181, 220, 237),
-                            border: Border(
-                                bottom: BorderSide(color: Colors.black))),
-                        child: InkWell(
-                          onTap: () {
-                            studentId = studentList[index].id.toString();
-                            studentName.text =
-                                studentList[index].studentName ?? "";
-
-                            studentAge.text =
-                                studentList[index].studentAge.toString();
-                          },
-                          child: ListTile(
-                            leading: const Icon(Icons.man),
-                            title: Text(studentList[index].studentName ?? ""),
-                            subtitle:
-                                Text(" Age : ${studentList[index].studentAge}"),
-                            trailing: ElevatedButton(
-                                onPressed: () {
-                                  studentId = studentList[index].id.toString();
-                                  showConfirmation(
-                                      context, "Do you want to delete this?",
-                                      (String message) {
-                                    print(message);
-                                    deleteRecord();
-                                  });
-                                },
-                                child: const Text("Delete")),
-                          ),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey, width: 0.5)),
+                child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Wrap(
+                      //crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InputText(
+                          caption: 'Name',
+                          controller: studentName,
+                          width: 250,
                         ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ]),
+                        InputText(
+                          caption: 'Address',
+                          controller: studentAddress,
+                          width: 300,
+                        ),
+                        InputText(
+                          caption: 'Age',
+                          controller: studentAge,
+                          width: 50,
+                        ),
+                      ],
+                    )),
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              const Text(
+                "List of Students",
+                style: TextStyle(fontSize: 20),
+              ),
+              FutureBuilder(
+                future: getList(),
+                builder: (context, snapshot) {
+                  return Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: studentList.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          decoration: const BoxDecoration(
+                              color: Color.fromARGB(255, 181, 220, 237),
+                              border: Border(
+                                  bottom: BorderSide(color: Colors.black))),
+                          child: InkWell(
+                            onTap: () {
+                              studentId = studentList[index].id.toString();
+                              studentName.text =
+                                  studentList[index].studentName ?? "";
+
+                              studentAge.text =
+                                  studentList[index].studentAge.toString();
+                            },
+                            child: ListTile(
+                              leading: const Icon(Icons.man),
+                              title: Text(studentList[index].studentName ?? ""),
+                              subtitle: Text(
+                                  " Age : ${studentList[index].studentAge}"),
+                              trailing: ElevatedButton(
+                                  onPressed: () {
+                                    studentId =
+                                        studentList[index].id.toString();
+                                    showConfirmation(
+                                        context, "Do you want to delete this?",
+                                        (String message) {
+                                      print(message);
+                                      deleteRecord();
+                                    });
+                                  },
+                                  child: const Text("Delete")),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ]),
+          ),
         ),
       ),
     );
