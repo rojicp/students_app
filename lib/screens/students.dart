@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../services/global.dart';
 import '../widgets/input_text.dart';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
+
 class StudentsPage extends StatefulWidget {
   const StudentsPage({super.key});
 
@@ -20,6 +22,9 @@ class _StudentsPageState extends State<StudentsPage> {
   String studentId = "";
 
   List<Student> studentList = [];
+
+  final List<String> listGender = ['Male', 'Female', 'Others'];
+  String? selectedGender;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +82,7 @@ class _StudentsPageState extends State<StudentsPage> {
                 child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       //crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         InputText(
@@ -94,6 +100,38 @@ class _StudentsPageState extends State<StudentsPage> {
                           controller: studentAge,
                           width: 50,
                         ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
+                          child: DropdownButton2(
+                            hint: const Text("Select Gender"),
+                            value: selectedGender,
+                            items: listGender
+                                .map((String genderCaption) =>
+                                    DropdownMenuItem<String>(
+                                      value: genderCaption,
+                                      child: Text(
+                                        genderCaption,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              selectedGender = value;
+                              setState(() {});
+                            },
+
+                            // buttonStyleData: const ButtonStyleData(
+                            //   padding: EdgeInsets.symmetric(horizontal: 16),
+                            //   height: 40,
+                            //   width: 160,
+                            // ),
+                            menuItemStyleData: const MenuItemStyleData(
+                              height: 40,
+                            ),
+                          ),
+                        )
                       ],
                     )),
               ),
@@ -131,7 +169,7 @@ class _StudentsPageState extends State<StudentsPage> {
                               leading: const Icon(Icons.man),
                               title: Text(studentList[index].studentName ?? ""),
                               subtitle: Text(
-                                  " Age : ${studentList[index].studentAge}"),
+                                  " Age : ${studentList[index].studentAge}, Address : ${studentList[index].studentAddress ?? ''}, Gender :${studentList[index].gender} "),
                               trailing: ElevatedButton(
                                   onPressed: () {
                                     studentId =
@@ -165,6 +203,8 @@ class _StudentsPageState extends State<StudentsPage> {
         'id': studentId,
         'student_name': studentName.text,
         'student_age': studentAge.text,
+        'address': studentAddress.text,
+        'gender': selectedGender
       };
 
       Uri url = Uri.parse("http://localhost:8080/student/create");
@@ -231,6 +271,8 @@ class _StudentsPageState extends State<StudentsPage> {
           student.id = jsonItem['id'];
           student.studentName = jsonItem['student_name'];
           student.studentAge = jsonItem['student_age'];
+          student.studentAddress = jsonItem['address'];
+          student.gender = jsonItem['gender'];
 
           studentList.add(student);
         });
@@ -296,6 +338,7 @@ class _StudentsPageState extends State<StudentsPage> {
     studentName.text = "";
     studentAddress.text = "";
     studentAge.text = "";
+    selectedGender = null;
   }
 }
 
@@ -304,4 +347,5 @@ class Student {
   String? studentName;
   String? studentAddress;
   int? studentAge;
+  String? gender;
 }

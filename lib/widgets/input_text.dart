@@ -18,16 +18,19 @@ class InputText extends StatefulWidget {
 class _InputTextState extends State<InputText> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.width,
-      child: TextFormField(
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return "${widget.caption} is required";
-          }
-        },
-        controller: widget.controller,
-        decoration: InputDecoration(labelText: widget.caption),
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: SizedBox(
+        width: widget.width,
+        child: TextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "${widget.caption} is required";
+            }
+          },
+          controller: widget.controller,
+          decoration: InputDecoration(labelText: widget.caption),
+        ),
       ),
     );
   }
