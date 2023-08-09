@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:students_app/screens/course.dart';
 import 'package:students_app/services/global.dart';
 import 'screens/students.dart';
 import 'screens/counter.dart';
@@ -79,6 +80,19 @@ class _HomePageState extends State<HomePage> {
               ));
             },
             child: const Text("Students Entry Page"),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return const CoursePage();
+                },
+              ));
+            },
+            child: const Text("Course Entry Page"),
           ),
         ]),
       ),

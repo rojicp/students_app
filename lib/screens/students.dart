@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:students_app/screens/course.dart';
 
 import '../services/global.dart';
 import '../widgets/input_text.dart';
@@ -22,9 +23,17 @@ class _StudentsPageState extends State<StudentsPage> {
   String studentId = "";
 
   List<Student> studentList = [];
+  List<Course> courseList = [];
 
   final List<String> listGender = ['Male', 'Female', 'Others'];
   String? selectedGender;
+
+  Course? selectedCourse;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,16 +130,41 @@ class _StudentsPageState extends State<StudentsPage> {
                               selectedGender = value;
                               setState(() {});
                             },
-
-                            // buttonStyleData: const ButtonStyleData(
-                            //   padding: EdgeInsets.symmetric(horizontal: 16),
-                            //   height: 40,
-                            //   width: 160,
-                            // ),
                             menuItemStyleData: const MenuItemStyleData(
                               height: 40,
                             ),
                           ),
+                        ),
+                        FutureBuilder(
+                          future: getCourseList(),
+                          builder: (context, snapshot) {
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
+                              child: DropdownButton2(
+                                hint: const Text("Select Course"),
+                                value: selectedCourse,
+                                items: courseList
+                                    .map((Course course) =>
+                                        DropdownMenuItem<Course>(
+                                          value: course,
+                                          child: Text(
+                                            course.courseName ?? "",
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                                onChanged: (course) {
+                                  selectedCourse = course;
+                                  setState(() {});
+                                },
+                                menuItemStyleData: const MenuItemStyleData(
+                                  height: 40,
+                                ),
+                              ),
+                            );
+                          },
                         )
                       ],
                     )),
@@ -204,7 +238,9 @@ class _StudentsPageState extends State<StudentsPage> {
         'student_name': studentName.text,
         'student_age': studentAge.text,
         'address': studentAddress.text,
-        'gender': selectedGender
+        'gender': selectedGender,
+        'course_id': selectedCourse!.id,
+        'course_name': selectedCourse!.courseName
       };
 
       Uri url = Uri.parse("http://localhost:8080/student/create");
@@ -339,6 +375,53 @@ class _StudentsPageState extends State<StudentsPage> {
     studentAddress.text = "";
     studentAge.text = "";
     selectedGender = null;
+  }
+
+  Future<void> getCourseList() async {
+    try {
+      Map<String, dynamic> body = {
+        'user_id': "test",
+      };
+
+      Uri url = Uri.parse("http://localhost:8080/course/getlist");
+
+      final response = await http.post(
+        url,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          'Content-Type': 'application/json',
+          'Accept': '*/*',
+        },
+        body: jsonEncode(body),
+      );
+
+      Map<String, dynamic> data = jsonDecode(response.body);
+      String msg = data["message"];
+      if (msg.toLowerCase().contains("success")) {
+        var jsonData = data["listData"];
+
+        courseList.clear();
+        jsonData.forEach((jsonItem) {
+          Course course = Course();
+          course.id = jsonItem['id'];
+          course.courseName = jsonItem['course_name'];
+          course.courseDetails = jsonItem['course_details'];
+
+          courseList.add(course);
+        });
+
+        print("courseList.length = ${courseList.length}");
+
+        //clearScreen();
+        print("msg = $msg");
+      } else {
+        showMessage(context, msg);
+        print("msg = $msg");
+      }
+    } catch (e) {
+      showMessage(context, "Error : $e");
+      print("msg = $e}");
+    }
   }
 }
 
