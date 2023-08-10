@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:students_app/screens/course.dart';
 
+import '../models/course.dart';
+import '../models/student_model.dart';
 import '../services/global.dart';
 import '../widgets/input_text.dart';
 
@@ -304,11 +306,13 @@ class _StudentsPageState extends State<StudentsPage> {
         studentList.clear();
         jsonData.forEach((jsonItem) {
           Student student = Student();
-          student.id = jsonItem['id'];
-          student.studentName = jsonItem['student_name'];
-          student.studentAge = jsonItem['student_age'];
-          student.studentAddress = jsonItem['address'];
-          student.gender = jsonItem['gender'];
+          // student.id = jsonItem['id'];
+          // student.studentName = jsonItem['student_name'];
+          // student.studentAge = jsonItem['student_age'];
+          // student.studentAddress = jsonItem['address'];
+          // student.gender = jsonItem['gender'];
+
+          student.fromJson(jsonItem);
 
           studentList.add(student);
         });
@@ -403,9 +407,11 @@ class _StudentsPageState extends State<StudentsPage> {
         courseList.clear();
         jsonData.forEach((jsonItem) {
           Course course = Course();
-          course.id = jsonItem['id'];
-          course.courseName = jsonItem['course_name'];
-          course.courseDetails = jsonItem['course_details'];
+          // course.id = jsonItem['id'];
+          // course.courseName = jsonItem['course_name'];
+          // course.courseDetails = jsonItem['course_details'];
+
+          course.fromJson(jsonItem);
 
           courseList.add(course);
         });
@@ -423,12 +429,4 @@ class _StudentsPageState extends State<StudentsPage> {
       print("msg = $e}");
     }
   }
-}
-
-class Student {
-  int? id;
-  String? studentName;
-  String? studentAddress;
-  int? studentAge;
-  String? gender;
 }

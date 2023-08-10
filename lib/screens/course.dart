@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/course.dart';
 import '../services/global.dart';
 import '../widgets/input_text.dart';
 
@@ -282,10 +283,4 @@ class _CoursePageState extends State<CoursePage> {
     courseName.text = "";
     courseDetails.text = "";
   }
-}
-
-class Course {
-  int? id;
-  String? courseName;
-  String? courseDetails;
 }
