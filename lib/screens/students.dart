@@ -18,14 +18,12 @@ class StudentsPage extends StatefulWidget {
 }
 
 class _StudentsPageState extends State<StudentsPage> {
-  TextEditingController studentName = TextEditingController();
-  TextEditingController studentAddress = TextEditingController();
-  TextEditingController studentAge = TextEditingController();
   final formGlobalKey = GlobalKey<FormState>();
   String studentId = "";
 
   List<Student> studentList = [];
   List<Course> courseList = [];
+  Student studentRecord = Student();
 
   final List<String> listGender = ['Male', 'Female', 'Others'];
   String? selectedGender;
@@ -98,17 +96,20 @@ class _StudentsPageState extends State<StudentsPage> {
                       children: [
                         InputText(
                           caption: 'Name',
-                          controller: studentName,
+                          modelObject: studentRecord,
+                          fieldName: "student_name",
                           width: 250,
                         ),
                         InputText(
                           caption: 'Address',
-                          controller: studentAddress,
+                          modelObject: studentRecord,
+                          fieldName: "address",
                           width: 300,
                         ),
                         InputText(
                           caption: 'Age',
-                          controller: studentAge,
+                          modelObject: studentRecord,
+                          fieldName: "student_age",
                           width: 50,
                         ),
                         Padding(
@@ -130,6 +131,8 @@ class _StudentsPageState extends State<StudentsPage> {
                                 .toList(),
                             onChanged: (value) {
                               selectedGender = value;
+
+                              studentRecord.gender = selectedGender;
                               setState(() {});
                             },
                             menuItemStyleData: const MenuItemStyleData(
@@ -140,6 +143,8 @@ class _StudentsPageState extends State<StudentsPage> {
                         FutureBuilder(
                           future: getCourseList(),
                           builder: (context, snapshot) {
+                            print(
+                                "selectedCourse=" + selectedCourse.toString());
                             return Padding(
                               padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
                               child: DropdownButton2(
@@ -159,6 +164,11 @@ class _StudentsPageState extends State<StudentsPage> {
                                     .toList(),
                                 onChanged: (course) {
                                   selectedCourse = course;
+                                  studentRecord.courseId =
+                                      selectedCourse!.id.toString();
+                                  studentRecord.courseName =
+                                      selectedCourse!.courseName;
+
                                   setState(() {});
                                 },
                                 menuItemStyleData: const MenuItemStyleData(
@@ -194,12 +204,19 @@ class _StudentsPageState extends State<StudentsPage> {
                                   bottom: BorderSide(color: Colors.black))),
                           child: InkWell(
                             onTap: () {
-                              studentId = studentList[index].id.toString();
-                              studentName.text =
-                                  studentList[index].studentName ?? "";
+                              studentRecord = studentList[index];
+                              selectedGender = studentList[index].gender;
+                              selectedCourse = null;
+                              courseList.forEach(
+                                (course_record) {
+                                  if (course_record.courseName ==
+                                      studentList[index].courseName) {
+                                    selectedCourse = course_record;
+                                  }
+                                },
+                              );
 
-                              studentAge.text =
-                                  studentList[index].studentAge.toString();
+                              setState(() {});
                             },
                             child: ListTile(
                               leading: const Icon(Icons.man),
@@ -235,16 +252,6 @@ class _StudentsPageState extends State<StudentsPage> {
 
   Future<void> saveRecord() async {
     try {
-      Map<String, dynamic> body = {
-        'id': studentId,
-        'student_name': studentName.text,
-        'student_age': studentAge.text,
-        'address': studentAddress.text,
-        'gender': selectedGender,
-        'course_id': selectedCourse!.id,
-        'course_name': selectedCourse!.courseName
-      };
-
       Uri url = Uri.parse("http://localhost:8080/student/create");
       if (studentId.isNotEmpty) {
         url = Uri.parse("http://localhost:8080/student/update");
@@ -257,7 +264,7 @@ class _StudentsPageState extends State<StudentsPage> {
           'Content-Type': 'application/json',
           'Accept': '*/*',
         },
-        body: jsonEncode(body),
+        body: jsonEncode(studentRecord.toJson()),
       );
 
       Map<String, dynamic> data = jsonDecode(response.body);
@@ -333,12 +340,6 @@ class _StudentsPageState extends State<StudentsPage> {
 
   Future<void> deleteRecord() async {
     try {
-      Map<String, dynamic> body = {
-        'id': studentId,
-        'student_name': studentName.text,
-        'student_age': studentAge.text,
-      };
-
       if (studentId.isEmpty) {
         showMessage(context, "Select a record...");
       }
@@ -352,7 +353,7 @@ class _StudentsPageState extends State<StudentsPage> {
           'Content-Type': 'application/json',
           'Accept': '*/*',
         },
-        body: jsonEncode(body),
+        body: jsonEncode(studentRecord.toJson()),
       );
 
       Map<String, dynamic> data = jsonDecode(response.body);
@@ -375,14 +376,16 @@ class _StudentsPageState extends State<StudentsPage> {
 
   void clearScreen() {
     studentId = "";
-    studentName.text = "";
-    studentAddress.text = "";
-    studentAge.text = "";
+    studentRecord = Student();
     selectedGender = null;
+    selectedCourse = null;
+    setState(() {});
   }
 
   Future<void> getCourseList() async {
     try {
+      if (courseList.isNotEmpty) return;
+
       Map<String, dynamic> body = {
         'user_id': "test",
       };
@@ -407,10 +410,6 @@ class _StudentsPageState extends State<StudentsPage> {
         courseList.clear();
         jsonData.forEach((jsonItem) {
           Course course = Course();
-          // course.id = jsonItem['id'];
-          // course.courseName = jsonItem['course_name'];
-          // course.courseDetails = jsonItem['course_details'];
-
           course.fromJson(jsonItem);
 
           courseList.add(course);

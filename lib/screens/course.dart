@@ -73,16 +73,16 @@ class _CoursePageState extends State<CoursePage> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       //crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        InputText(
-                          caption: 'Course Name',
-                          controller: courseName,
-                          width: 250,
-                        ),
-                        InputText(
-                          caption: 'Course Details',
-                          controller: courseDetails,
-                          width: 300,
-                        ),
+                        // InputText(
+                        //   caption: 'Course Name',
+                        //   controller: courseName,
+                        //   width: 250,
+                        // ),
+                        // InputText(
+                        //   caption: 'Course Details',
+                        //   controller: courseDetails,
+                        //   width: 300,
+                        // ),
                       ],
                     )),
               ),
