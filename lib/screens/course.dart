@@ -16,13 +16,12 @@ class CoursePage extends StatefulWidget {
 }
 
 class _CoursePageState extends State<CoursePage> {
-  TextEditingController courseName = TextEditingController();
-  TextEditingController courseDetails = TextEditingController();
-
   final formGlobalKey = GlobalKey<FormState>();
   String courseId = "";
 
   List<Course> courseList = [];
+
+  Course courseRecord = Course();
 
   @override
   Widget build(BuildContext context) {
@@ -73,16 +72,18 @@ class _CoursePageState extends State<CoursePage> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       //crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // InputText(
-                        //   caption: 'Course Name',
-                        //   controller: courseName,
-                        //   width: 250,
-                        // ),
-                        // InputText(
-                        //   caption: 'Course Details',
-                        //   controller: courseDetails,
-                        //   width: 300,
-                        // ),
+                        InputText(
+                          caption: 'Course Name',
+                          modelObject: courseRecord,
+                          fieldName: "course_name",
+                          width: 250,
+                        ),
+                        InputText(
+                          caption: 'Course Details',
+                          modelObject: courseRecord,
+                          fieldName: "course_details",
+                          width: 300,
+                        ),
                       ],
                     )),
               ),
@@ -110,10 +111,11 @@ class _CoursePageState extends State<CoursePage> {
                           child: InkWell(
                             onTap: () {
                               courseId = courseList[index].id.toString();
-                              courseName.text =
+                              courseRecord.courseName =
                                   courseList[index].courseName ?? "";
-                              courseDetails.text =
+                              courseRecord.courseDetails =
                                   courseList[index].courseDetails ?? "";
+                              setState(() {});
                             },
                             child: ListTile(
                               leading: const Icon(Icons.man),
@@ -150,8 +152,8 @@ class _CoursePageState extends State<CoursePage> {
     try {
       Map<String, dynamic> body = {
         'id': courseId,
-        'course_name': courseName.text,
-        'course_details': courseDetails.text,
+        'course_name': courseRecord.courseName,
+        'course_details': courseRecord.courseDetails,
       };
 
       Uri url = Uri.parse("http://localhost:8080/course/create");
@@ -240,8 +242,8 @@ class _CoursePageState extends State<CoursePage> {
     try {
       Map<String, dynamic> body = {
         'id': courseId,
-        'course_name': courseName.text,
-        'course_details': courseDetails.text
+        'course_name': courseRecord.courseName,
+        'course_details': courseRecord.courseDetails,
       };
 
       if (courseId.isEmpty) {
@@ -280,7 +282,6 @@ class _CoursePageState extends State<CoursePage> {
 
   void clearScreen() {
     courseId = "";
-    courseName.text = "";
-    courseDetails.text = "";
+    courseRecord = Course();
   }
 }

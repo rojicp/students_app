@@ -26,7 +26,9 @@ class _InputTextState extends State<InputText> {
     String fieldValue = "";
     if (widget.modelObject.get(widget.fieldName) != null) {
       fieldValue = widget.modelObject.get(widget.fieldName).toString();
-      controller.text = fieldValue;
+      if (mounted) {
+        controller.text = fieldValue;
+      }
     }
 
     return Padding(

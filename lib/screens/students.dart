@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +10,7 @@ import '../services/global.dart';
 import '../widgets/input_text.dart';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:blinking_text/blinking_text.dart';
 
 class StudentsPage extends StatefulWidget {
   const StudentsPage({super.key});
@@ -30,8 +32,26 @@ class _StudentsPageState extends State<StudentsPage> {
 
   Course? selectedCourse;
 
+  int counter = 10;
+
+  ValueNotifier<bool> showHeader = ValueNotifier(true);
+
   @override
   void initState() {
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      print(counter);
+      counter--;
+      if (counter == 0) {
+        print('Cancel timer');
+        timer.cancel();
+      }
+    });
+
+    Future.delayed(const Duration(seconds: 5), () {
+      print('5 seconds over');
+      showHeader.value = false;
+    });
+
     super.initState();
   }
 
@@ -67,7 +87,7 @@ class _StudentsPageState extends State<StudentsPage> {
       ),
       body: Container(
         decoration:
-            BoxDecoration(color: const Color.fromARGB(255, 132, 159, 171)),
+            const BoxDecoration(color: Color.fromARGB(255, 132, 159, 171)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
@@ -84,169 +104,191 @@ class _StudentsPageState extends State<StudentsPage> {
                   ),
                 ),
               ),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 0.5)),
-                child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      //crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InputText(
-                          caption: 'Name',
-                          modelObject: studentRecord,
-                          fieldName: "student_name",
-                          width: 250,
-                        ),
-                        InputText(
-                          caption: 'Address',
-                          modelObject: studentRecord,
-                          fieldName: "address",
-                          width: 300,
-                        ),
-                        InputText(
-                          caption: 'Age',
-                          modelObject: studentRecord,
-                          fieldName: "student_age",
-                          width: 50,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
-                          child: DropdownButton2(
-                            hint: const Text("Select Gender"),
-                            value: selectedGender,
-                            items: listGender
-                                .map((String genderCaption) =>
-                                    DropdownMenuItem<String>(
-                                      value: genderCaption,
-                                      child: Text(
-                                        genderCaption,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              selectedGender = value;
-
-                              studentRecord.gender = selectedGender;
-                              setState(() {});
-                            },
-                            menuItemStyleData: const MenuItemStyleData(
-                              height: 40,
-                            ),
-                          ),
-                        ),
-                        FutureBuilder(
-                          future: getCourseList(),
-                          builder: (context, snapshot) {
-                            print(
-                                "selectedCourse=" + selectedCourse.toString());
-                            return Padding(
-                              padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
-                              child: DropdownButton2(
-                                hint: const Text("Select Course"),
-                                value: selectedCourse,
-                                items: courseList
-                                    .map((Course course) =>
-                                        DropdownMenuItem<Course>(
-                                          value: course,
-                                          child: Text(
-                                            course.courseName ?? "",
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ))
-                                    .toList(),
-                                onChanged: (course) {
-                                  selectedCourse = course;
-                                  studentRecord.courseId =
-                                      selectedCourse!.id.toString();
-                                  studentRecord.courseName =
-                                      selectedCourse!.courseName;
-
-                                  setState(() {});
-                                },
-                                menuItemStyleData: const MenuItemStyleData(
-                                  height: 40,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      ],
-                    )),
-              ),
               const SizedBox(
                 height: 5,
               ),
+              ListenableBuilder(
+                listenable: showHeader,
+                builder: (context, child) {
+                  if (showHeader.value) {
+                    return const BlinkText(
+                      'Please enter some data and save...',
+                      beginColor: Colors.red,
+                      endColor: Colors.green,
+                      //duration: Duration(seconds: 1),
+                      times: 5,
+                      style: TextStyle(fontSize: 20),
+                    );
+                  } else {
+                    return SizedBox();
+                  }
+                },
+              ),
+              getEntryForm(),
               const Text(
                 "List of Students",
                 style: TextStyle(fontSize: 20),
               ),
-              FutureBuilder(
-                future: getList(),
-                builder: (context, snapshot) {
-                  return Expanded(
-                    child: ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      itemCount: studentList.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          decoration: const BoxDecoration(
-                              color: Color.fromARGB(255, 181, 220, 237),
-                              border: Border(
-                                  bottom: BorderSide(color: Colors.black))),
-                          child: InkWell(
-                            onTap: () {
-                              studentRecord = studentList[index];
-                              selectedGender = studentList[index].gender;
-                              selectedCourse = null;
-                              courseList.forEach(
-                                (course_record) {
-                                  if (course_record.courseName ==
-                                      studentList[index].courseName) {
-                                    selectedCourse = course_record;
-                                  }
-                                },
-                              );
-
-                              setState(() {});
-                            },
-                            child: ListTile(
-                              leading: const Icon(Icons.man),
-                              title: Text(studentList[index].studentName ?? ""),
-                              subtitle: Text(
-                                  " Age : ${studentList[index].studentAge}, Address : ${studentList[index].studentAddress ?? ''}, Gender :${studentList[index].gender} "),
-                              trailing: ElevatedButton(
-                                  onPressed: () {
-                                    studentId =
-                                        studentList[index].id.toString();
-                                    showConfirmation(
-                                        context, "Do you want to delete this?",
-                                        (String message) {
-                                      print(message);
-                                      deleteRecord();
-                                    });
-                                  },
-                                  child: const Text("Delete")),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+              getListWidget(),
             ]),
           ),
         ),
       ),
+    );
+  }
+
+  Widget getEntryForm() {
+    return Container(
+      width: double.infinity,
+      decoration:
+          BoxDecoration(border: Border.all(color: Colors.grey, width: 0.5)),
+      child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            //crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InputText(
+                caption: 'Name',
+                modelObject: studentRecord,
+                fieldName: "student_name",
+                width: 250,
+              ),
+              InputText(
+                caption: 'Address',
+                modelObject: studentRecord,
+                fieldName: "address",
+                width: 300,
+              ),
+              InputText(
+                caption: 'Age',
+                modelObject: studentRecord,
+                fieldName: "student_age",
+                width: 50,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
+                child: DropdownButton2(
+                  hint: const Text("Select Gender"),
+                  value: selectedGender,
+                  items: listGender
+                      .map((String genderCaption) => DropdownMenuItem<String>(
+                            value: genderCaption,
+                            child: Text(
+                              genderCaption,
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    selectedGender = value;
+
+                    studentRecord.gender = selectedGender;
+                    setState(() {});
+                  },
+                  menuItemStyleData: const MenuItemStyleData(
+                    height: 40,
+                  ),
+                ),
+              ),
+              FutureBuilder(
+                future: getCourseList(),
+                builder: (context, snapshot) {
+                  print("selectedCourse=" + selectedCourse.toString());
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
+                    child: DropdownButton2(
+                      hint: const Text("Select Course"),
+                      value: selectedCourse,
+                      items: courseList
+                          .map((Course course) => DropdownMenuItem<Course>(
+                                value: course,
+                                child: Text(
+                                  course.courseName ?? "",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (course) {
+                        selectedCourse = course;
+                        studentRecord.courseId = selectedCourse!.id.toString();
+                        studentRecord.courseName = selectedCourse!.courseName;
+
+                        setState(() {});
+                      },
+                      menuItemStyleData: const MenuItemStyleData(
+                        height: 40,
+                      ),
+                    ),
+                  );
+                },
+              )
+            ],
+          )),
+    );
+  }
+
+  Widget getListWidget() {
+    return FutureBuilder(
+      future: getList(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else {
+          return Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: studentList.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  decoration: const BoxDecoration(
+                      color: Color.fromARGB(255, 181, 220, 237),
+                      border: Border(bottom: BorderSide(color: Colors.black))),
+                  child: InkWell(
+                    onTap: () {
+                      studentRecord = studentList[index];
+                      selectedGender = studentList[index].gender;
+                      selectedCourse = null;
+                      courseList.forEach(
+                        (course_record) {
+                          if (course_record.courseName ==
+                              studentList[index].courseName) {
+                            selectedCourse = course_record;
+                          }
+                        },
+                      );
+
+                      setState(() {});
+                    },
+                    child: ListTile(
+                      leading: const Icon(Icons.man),
+                      title: Text(studentList[index].studentName ?? ""),
+                      subtitle: Text(
+                          " Age : ${studentList[index].studentAge}, Address : ${studentList[index].studentAddress ?? ''}, Gender :${studentList[index].gender} "),
+                      trailing: ElevatedButton(
+                          onPressed: () {
+                            studentId = studentList[index].id.toString();
+                            showConfirmation(
+                                context, "Do you want to delete this?",
+                                (String message) {
+                              print(message);
+                              deleteRecord();
+                            });
+                          },
+                          child: const Text("Delete")),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }
+      },
     );
   }
 
