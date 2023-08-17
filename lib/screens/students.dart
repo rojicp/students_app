@@ -19,25 +19,40 @@ class StudentsPage extends StatefulWidget {
   State<StudentsPage> createState() => _StudentsPageState();
 }
 
-class _StudentsPageState extends State<StudentsPage> {
+class _StudentsPageState extends State<StudentsPage>
+    with SingleTickerProviderStateMixin {
   final formGlobalKey = GlobalKey<FormState>();
   String studentId = "";
-
   List<Student> studentList = [];
   List<Course> courseList = [];
   Student studentRecord = Student();
-
   final List<String> listGender = ['Male', 'Female', 'Others'];
   String? selectedGender;
-
   Course? selectedCourse;
-
   int counter = 10;
-
   ValueNotifier<bool> showHeader = ValueNotifier(true);
+  late TabController _tabController;
+
+  static List<Tab> myTabs = <Tab>[
+    const Tab(
+      child: Text(
+        "Student",
+        style: TextStyle(color: Colors.white),
+      ),
+    ),
+    const Tab(
+      child: Text(
+        "Details",
+        style: TextStyle(color: Colors.white),
+      ),
+    ),
+  ];
 
   @override
   void initState() {
+    _tabController = TabController(
+        vsync: this, length: myTabs.length, animationDuration: Duration.zero);
+
     Timer.periodic(const Duration(seconds: 2), (timer) {
       print(counter);
       counter--;
@@ -53,6 +68,12 @@ class _StudentsPageState extends State<StudentsPage> {
     });
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -92,45 +113,54 @@ class _StudentsPageState extends State<StudentsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: formGlobalKey,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: logoWidth,
-                  height: logoHeight,
-                  child: const CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/student.jpeg'),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 5,
-              ),
-              ListenableBuilder(
-                listenable: showHeader,
-                builder: (context, child) {
-                  if (showHeader.value) {
-                    return const BlinkText(
-                      'Please enter some data and save...',
-                      beginColor: Colors.red,
-                      endColor: Colors.green,
-                      //duration: Duration(seconds: 1),
-                      times: 5,
-                      style: TextStyle(fontSize: 20),
-                    );
-                  } else {
-                    return SizedBox();
-                  }
-                },
-              ),
-              getEntryForm(),
-              const Text(
-                "List of Students",
-                style: TextStyle(fontSize: 20),
-              ),
-              getListWidget(),
-            ]),
+            child: SingleChildScrollView(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: logoWidth,
+                        height: logoHeight,
+                        child: const CircleAvatar(
+                          backgroundImage:
+                              AssetImage('assets/images/student.jpeg'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    ListenableBuilder(
+                      listenable: showHeader,
+                      builder: (context, child) {
+                        if (showHeader.value) {
+                          return const BlinkText(
+                            'Please enter some data and save...',
+                            beginColor: Colors.red,
+                            endColor: Colors.green,
+                            //duration: Duration(seconds: 1),
+                            times: 5,
+                            style: TextStyle(fontSize: 20),
+                          );
+                        } else {
+                          return SizedBox();
+                        }
+                      },
+                    ),
+                    TabBar(
+                      tabs: myTabs,
+                      controller: _tabController,
+                    ),
+                    SizedBox(
+                      height: 2000,
+                      child: TabBarView(controller: _tabController, children: [
+                        getEntryForm(),
+                        getListWidget(),
+                      ]),
+                    )
+                  ]),
+            ),
           ),
         ),
       ),
@@ -233,6 +263,11 @@ class _StudentsPageState extends State<StudentsPage> {
   }
 
   Widget getListWidget() {
+    //  const Text(
+    //         "List of Students",
+    //         style: TextStyle(fontSize: 20),
+    //       ),
+
     return FutureBuilder(
       future: getList(),
       builder: (context, snapshot) {
