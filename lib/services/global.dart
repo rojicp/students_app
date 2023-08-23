@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 bool showCounterExample = false;
 
+String rootURL = "http://localhost:8080";
+
 showMessage(context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(backgroundColor: Colors.blueAccent, content: Text(message)));

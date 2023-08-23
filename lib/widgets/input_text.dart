@@ -22,7 +22,16 @@ class _InputTextState extends State<InputText> {
   TextEditingController controller = TextEditingController();
 
   @override
+  void initState() {
+    print("===> initState");
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print("===> Build");
+
     String fieldValue = "";
     if (widget.modelObject.get(widget.fieldName) != null) {
       fieldValue = widget.modelObject.get(widget.fieldName).toString();

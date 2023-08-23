@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:students_app/screens/course.dart';
@@ -32,6 +34,7 @@ class _StudentsPageState extends State<StudentsPage>
   int counter = 10;
   ValueNotifier<bool> showHeader = ValueNotifier(true);
   late TabController _tabController;
+  File? _selectedFile;
 
   static List<Tab> myTabs = <Tab>[
     const Tab(
@@ -40,12 +43,12 @@ class _StudentsPageState extends State<StudentsPage>
         style: TextStyle(color: Colors.white),
       ),
     ),
-    const Tab(
-      child: Text(
-        "Details",
-        style: TextStyle(color: Colors.white),
-      ),
-    ),
+    // const Tab(
+    //   child: Text(
+    //     "Details",
+    //     style: TextStyle(color: Colors.white),
+    //   ),
+    // ),
   ];
 
   @override
@@ -131,23 +134,23 @@ class _StudentsPageState extends State<StudentsPage>
                     const SizedBox(
                       height: 5,
                     ),
-                    ListenableBuilder(
-                      listenable: showHeader,
-                      builder: (context, child) {
-                        if (showHeader.value) {
-                          return const BlinkText(
-                            'Please enter some data and save...',
-                            beginColor: Colors.red,
-                            endColor: Colors.green,
-                            //duration: Duration(seconds: 1),
-                            times: 5,
-                            style: TextStyle(fontSize: 20),
-                          );
-                        } else {
-                          return SizedBox();
-                        }
-                      },
-                    ),
+                    // ListenableBuilder(
+                    //   listenable: showHeader,
+                    //   builder: (context, child) {
+                    //     if (showHeader.value) {
+                    //       return const BlinkText(
+                    //         'Please enter some data and save...',
+                    //         beginColor: Colors.red,
+                    //         endColor: Colors.green,
+                    //         //duration: Duration(seconds: 1),
+                    //         times: 5,
+                    //         style: TextStyle(fontSize: 20),
+                    //       );
+                    //     } else {
+                    //       return SizedBox();
+                    //     }
+                    //   },
+                    // ),
                     TabBar(
                       tabs: myTabs,
                       controller: _tabController,
@@ -156,7 +159,6 @@ class _StudentsPageState extends State<StudentsPage>
                       height: 2000,
                       child: TabBarView(controller: _tabController, children: [
                         getEntryForm(),
-                        getListWidget(),
                       ]),
                     )
                   ]),
@@ -256,7 +258,12 @@ class _StudentsPageState extends State<StudentsPage>
                     ),
                   );
                 },
-              )
+              ),
+              ElevatedButton(
+                onPressed: _selectFile,
+                child: Text('Select File'),
+              ),
+              getListWidget(),
             ],
           )),
     );
@@ -274,53 +281,51 @@ class _StudentsPageState extends State<StudentsPage>
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else {
-          return Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              itemCount: studentList.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: const BoxDecoration(
-                      color: Color.fromARGB(255, 181, 220, 237),
-                      border: Border(bottom: BorderSide(color: Colors.black))),
-                  child: InkWell(
-                    onTap: () {
-                      studentRecord = studentList[index];
-                      selectedGender = studentList[index].gender;
-                      selectedCourse = null;
-                      courseList.forEach(
-                        (course_record) {
-                          if (course_record.courseName ==
-                              studentList[index].courseName) {
-                            selectedCourse = course_record;
-                          }
-                        },
-                      );
+          return ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: studentList.length,
+            itemBuilder: (context, index) {
+              return Container(
+                decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 181, 220, 237),
+                    border: Border(bottom: BorderSide(color: Colors.black))),
+                child: InkWell(
+                  onTap: () {
+                    studentRecord = studentList[index];
+                    selectedGender = studentList[index].gender;
+                    selectedCourse = null;
+                    courseList.forEach(
+                      (course_record) {
+                        if (course_record.courseName ==
+                            studentList[index].courseName) {
+                          selectedCourse = course_record;
+                        }
+                      },
+                    );
 
-                      setState(() {});
-                    },
-                    child: ListTile(
-                      leading: const Icon(Icons.man),
-                      title: Text(studentList[index].studentName ?? ""),
-                      subtitle: Text(
-                          " Age : ${studentList[index].studentAge}, Address : ${studentList[index].studentAddress ?? ''}, Gender :${studentList[index].gender} "),
-                      trailing: ElevatedButton(
-                          onPressed: () {
-                            studentId = studentList[index].id.toString();
-                            showConfirmation(
-                                context, "Do you want to delete this?",
-                                (String message) {
-                              print(message);
-                              deleteRecord();
-                            });
-                          },
-                          child: const Text("Delete")),
-                    ),
+                    setState(() {});
+                  },
+                  child: ListTile(
+                    leading: const Icon(Icons.man),
+                    title: Text(studentList[index].studentName ?? ""),
+                    subtitle: Text(
+                        " Age : ${studentList[index].studentAge}, Address : ${studentList[index].studentAddress ?? ''}, Gender :${studentList[index].gender} "),
+                    trailing: ElevatedButton(
+                        onPressed: () {
+                          studentId = studentList[index].id.toString();
+                          showConfirmation(
+                              context, "Do you want to delete this?",
+                              (String message) {
+                            print(message);
+                            deleteRecord();
+                          });
+                        },
+                        child: const Text("Delete")),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           );
         }
       },
@@ -329,9 +334,9 @@ class _StudentsPageState extends State<StudentsPage>
 
   Future<void> saveRecord() async {
     try {
-      Uri url = Uri.parse("http://localhost:8080/student/create");
+      Uri url = Uri.parse("$rootURL/student/create");
       if (studentId.isNotEmpty) {
-        url = Uri.parse("http://localhost:8080/student/update");
+        url = Uri.parse("$rootURL/student/update");
       }
 
       final response = await http.post(
@@ -370,7 +375,7 @@ class _StudentsPageState extends State<StudentsPage>
         'user_id': "test",
       };
 
-      Uri url = Uri.parse("http://localhost:8080/student/getlist");
+      Uri url = Uri.parse("$rootURL/student/getlist");
 
       final response = await http.post(
         url,
@@ -421,7 +426,7 @@ class _StudentsPageState extends State<StudentsPage>
         showMessage(context, "Select a record...");
       }
 
-      Uri url = Uri.parse("http://localhost:8080/student/delete");
+      Uri url = Uri.parse("$rootURL/student/delete");
 
       final response = await http.post(
         url,
@@ -467,7 +472,7 @@ class _StudentsPageState extends State<StudentsPage>
         'user_id': "test",
       };
 
-      Uri url = Uri.parse("http://localhost:8080/course/getlist");
+      Uri url = Uri.parse("$rootURL/course/getlist");
 
       final response = await http.post(
         url,
@@ -503,6 +508,54 @@ class _StudentsPageState extends State<StudentsPage>
     } catch (e) {
       showMessage(context, "Error : $e");
       print("msg = $e}");
+    }
+  }
+
+  void _selectFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      setState(() {
+        _selectedFile = file;
+      });
+    } else {
+      // User canceled the picker
+    }
+  }
+
+  void _uploadFile() async {
+    if (_selectedFile != null) {
+      Uri url = Uri.parse("$rootURL/file/upload");
+      var request = http.MultipartRequest(
+        'POST',
+        url,
+      );
+
+      request.files.add(
+        http.MultipartFile(
+          'file',
+          _selectedFile!.readAsBytes().asStream(),
+          _selectedFile!.lengthSync(),
+          filename: _selectedFile!.path.split('/').last,
+        ),
+      );
+
+      var response = await request.send();
+
+      // Map<String, dynamic> data = jsonDecode(response.body);
+      // String msg = data["message"];
+      // if (msg.toLowerCase().contains("success")) {
+      //   showMessage(context, msg);
+      // } else {
+      //   showMessage(context, msg);
+      // }
+
+      if (response.statusCode == 200) {
+        print('File uploaded successfully');
+      } else {
+        print('File upload failed');
+      }
     }
   }
 }
