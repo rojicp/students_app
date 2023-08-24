@@ -36,7 +36,9 @@ class _InputTextState extends State<InputText> {
     if (widget.modelObject.get(widget.fieldName) != null) {
       fieldValue = widget.modelObject.get(widget.fieldName).toString();
       if (mounted) {
-        controller.text = fieldValue;
+        Future.delayed(Duration.zero, () {
+          controller.text = fieldValue;
+        });
       }
     }
 

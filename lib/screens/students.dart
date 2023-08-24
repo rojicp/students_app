@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:students_app/screens/course.dart';
 
 import '../models/course.dart';
@@ -34,7 +36,8 @@ class _StudentsPageState extends State<StudentsPage>
   int counter = 10;
   ValueNotifier<bool> showHeader = ValueNotifier(true);
   late TabController _tabController;
-  File? _selectedFile;
+  Uint8List? _selectedFile;
+  String? _selectedFileName = "";
 
   static List<Tab> myTabs = <Tab>[
     const Tab(
@@ -259,9 +262,21 @@ class _StudentsPageState extends State<StudentsPage>
                   );
                 },
               ),
-              ElevatedButton(
-                onPressed: _selectFile,
-                child: Text('Select File'),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: _selectFile,
+                    child: Text('Select File'),
+                  ),
+                  Text(_selectedFileName ?? ""),
+                  SizedBox(
+                    width: 100,
+                  ),
+                  ElevatedButton(
+                    onPressed: _uploadFile,
+                    child: Text('Upload'),
+                  ),
+                ],
               ),
               getListWidget(),
             ],
@@ -512,12 +527,15 @@ class _StudentsPageState extends State<StudentsPage>
   }
 
   void _selectFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: false,
+        allowedExtensions: ['jpg', 'png']);
 
     if (result != null) {
-      File file = File(result.files.single.path!);
+      _selectedFile = result.files.first.bytes!;
       setState(() {
-        _selectedFile = file;
+        _selectedFileName = result.files.first.name;
       });
     } else {
       // User canceled the picker
@@ -526,36 +544,21 @@ class _StudentsPageState extends State<StudentsPage>
 
   void _uploadFile() async {
     if (_selectedFile != null) {
-      Uri url = Uri.parse("$rootURL/file/upload");
-      var request = http.MultipartRequest(
-        'POST',
-        url,
-      );
+      var url = Uri.parse("$rootURL/file/upload");
+      var request = http.MultipartRequest('POST', url);
+      request.fields["user_id"] = "test";
 
-      request.files.add(
-        http.MultipartFile(
-          'file',
-          _selectedFile!.readAsBytes().asStream(),
-          _selectedFile!.lengthSync(),
-          filename: _selectedFile!.path.split('/').last,
-        ),
-      );
+      var multipart = await http.MultipartFile.fromBytes('file', _selectedFile!,
+          filename: _selectedFileName,
+          contentType: MediaType.parse("application/image"));
+      request.files.add(multipart);
 
-      var response = await request.send();
-
-      // Map<String, dynamic> data = jsonDecode(response.body);
-      // String msg = data["message"];
-      // if (msg.toLowerCase().contains("success")) {
-      //   showMessage(context, msg);
-      // } else {
-      //   showMessage(context, msg);
-      // }
-
-      if (response.statusCode == 200) {
-        print('File uploaded successfully');
-      } else {
-        print('File upload failed');
-      }
+      var streamedResponse = await request.send();
+      var _result = await http.Response.fromStream(streamedResponse);
+      Map<String, dynamic> data = jsonDecode(_result.body);
+      showMessage(context, data["message"]);
+    } else {
+      showMessage(context, "No files selected...");
     }
   }
 }
