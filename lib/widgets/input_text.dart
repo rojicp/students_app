@@ -23,14 +23,14 @@ class _InputTextState extends State<InputText> {
 
   @override
   void initState() {
-    print("===> initState");
+    print("===> InputText initState");
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    print("===> Build");
+    print("===> InputText Build");
 
     String fieldValue = "";
     if (widget.modelObject.get(widget.fieldName) != null) {
@@ -40,6 +40,10 @@ class _InputTextState extends State<InputText> {
           controller.text = fieldValue;
         });
       }
+    } else {
+      Future.delayed(Duration.zero, () {
+        controller.text = "";
+      });
     }
 
     return Padding(

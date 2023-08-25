@@ -47,7 +47,7 @@ class Student implements BaseModelClass {
     id = json['id'];
     studentName = json['student_name'];
     studentAddress = json['address'];
-    studentAge = json['student_age'];
+    studentAge = int.parse((json['student_age'] ?? "0").toString());
     gender = json['gender'];
     courseId = json['course_id'];
     courseName = json['course_name'];

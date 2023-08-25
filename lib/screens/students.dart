@@ -307,6 +307,7 @@ class _StudentsPageState extends State<StudentsPage>
                     border: Border(bottom: BorderSide(color: Colors.black))),
                 child: InkWell(
                   onTap: () {
+                    studentId = studentList[index].id.toString();
                     studentRecord = studentList[index];
                     selectedGender = studentList[index].gender;
                     selectedCourse = null;
